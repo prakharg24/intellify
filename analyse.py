@@ -149,41 +149,50 @@ for school in new_sch_dict:
 for school in new_sch_dict:
     ele = new_sch_dict[school]
     os.mkdir('data/' + str(school))
-    file = open('data/' + str(school) + "/data.txt", "w")
+    file = open('data/' + str(school) + "/data.html", "w")
 
-    file.write("General Information\n")
-    file.write("-------------------\n\n")
+    file.write("<h1>General Information</h1>\n")
+    file.write("<hr />\n")
 
-    file.write("School ID : " + str(school) + "\n\n")
+    file.write("<p><b>School ID</b> : " + str(school) + "</p>\n")
+    file.write("<br />\n")
 
-    file.write("Number of participants:\n")
-    file.write("Level 0 \t Level 1 \t Level 2 \t Level 3 \t Total\n")
-    file.write(str(len(ele['data'][0])) + "\t\t\t\t" + str(len(ele['data'][1])) + "\t\t\t" + str(len(ele['data'][2])) + "\t\t\t" + str(len(ele['data'][3])) + "\t\t\t" + str(ele['num']))
+    file.write("<p><b>Number of participants:</b></p>\n")
+    file.write("<table>\n")
+    file.write("<tr>\n")
+    file.write("<td align=\"center\">Level 0</th> <td align=\"center\">Level 1</th> <td align=\"center\">Level 2</th> <td align=\"center\">Level 3</th> <td align=\"center\">Total </th>\n")
+    file.write("</tr>\n")
+    file.write("<tr>\n")
+    file.write("<td align=\"center\">" + str(len(ele['data'][0])) + " </td> <td align=\"center\">" + str(len(ele['data'][1])) + " </td> <td align=\"center\">" + str(len(ele['data'][2])) + " </td> <td align=\"center\">" + str(len(ele['data'][3])) + " </td> <td align=\"center\">" + str(ele['num']) + "</td>\n")
+    file.write("</tr>\n")
+    file.write("</table>\n")
 
-    file.write("\n\n\n")
+    file.write("<br />\n<br />\n\n")
 
     disc = ele['discarded']
     ttl = ele['num']
-    file.write("Incorrectly Filled OMR\n")
-    file.write("----------------------\n\n")
-    file.write("Percentage of students from this school who did not fill OMR correctly : " + str(int(100*disc/(disc + ttl))) + "%\n")
-    file.write("Overall Percentage of students who did not fill OMR correctly : " + str(int(100*ttl_disc/(ttl_disc + student_num))) + "%\n")
+    file.write("<h1>Incorrectly Filled OMR</h1>\n")
+    file.write("<hr />\n")
+    file.write("<p><b>Percentage of students from this school who did not fill OMR correctly : </b>" + str(int(100*disc/(disc + ttl))) + "%</p>\n")
+    file.write("<p><b>Overall Percentage of students who did not fill OMR correctly : </b>" + str(int(100*ttl_disc/(ttl_disc + student_num))) + "%</p>\n")
 
     if(disc/(disc + ttl) > ttl_disc/(ttl_disc + student_num)):
-        file.write("\nRemark -> \n")
-        file.write("The students need practise regarding how to properly fill OMR.\n")
+        file.write("<p><i>Remark -> The students need practise regarding how to properly fill OMR.</i></p>\n")
 
-    file.write("\n\n")
+    file.write("<br />\n<br />\n")
+
+    file.write("<h1> Level Wise Analysis </h1>\n")
+    file.write("<hr />\n")
 
     for i in range(4):
         if(len(ele['data'][i])==0):
             continue
 
         attn = []
-        file.write("Level " + str(i) + "\n")
-        file.write("-------\n\n")
+        file.write("<br/>\n")
+        file.write("<h2>Level " + str(i) + "</h2>\n")
 
-        file.write("Performance Graph (Marks Distribution) : \n\n\n")
+        file.write("<p><b>Performance Graph (Marks Distribution) : </b></p>\n")
 
         extr = [0, 200]
         for dtp in ele['data'][i]:
@@ -203,56 +212,70 @@ for school in new_sch_dict:
 
         while(len(nar)!=len(y)):
             nar.append(nar[-1]+5)
-
-        width = 4
-        plt.bar(nar, y, width, color="blue")
-        plt.savefig('data/' + str(school) + "/chart" + str(i) + ".png")
         
         mpl_fig = plt.figure()
         ax = mpl_fig.add_subplot(111)
         ax.set_ylabel('Number of Students')
         ax.set_xlabel('Score')
 
-        # plt.close()
+        width = 4
+        plt.bar(nar, y, width, color="blue")
+        file_name = str(school) + "/chart" + str(i) + ".png"
+        plt.savefig('data/' + file_name)
 
+        plt.clf()
+
+        file.write("<img src=\"../chart" + str(i) + ".png\" height=300 width=300>\n")
 
         lim = int(len(ele['data'][i])*0.05)
         if(lim>=3):
-            file.write("Star Performers (Top 5%) :\n\n")
+            file.write("<p><b>Star Performers (Top 5%) : </b></p>\n")
         else:
             lim = 3
-            file.write("Star Performers (Top 3) :\n\n")
-        file.write("Student ID \t Overall Score\n")
+            file.write("<p><b>Star Performers (Top 3) : </b></p>\n")
+
+        file.write("<table>\n")
+        file.write("<tr>\n")
+        file.write("<td align=\"center\"> <i>Student ID</i> </td><td align=\"center\"> <i>Overall Score</i> </td>\n")
+        file.write("</tr>\n")
         heap2 = []
         for ind in range(len(ele['data'][i])):
             temp = ele['data'][i][ind][5]
             heappush(heap2, (0-temp, ele['id'][i][ind]))
 
         for j in range(lim):
+            file.write("<tr>\n")
             star = heappop(heap2)
-            file.write(int_to_str(star[1], 3) + "\t\t\t\t" + str(0 - star[0]) + "\n")
+            file.write("<td align=\"center\">" + int_to_str(star[1], 3) + "</td> <td align=\"center\">" + str(0 - star[0]) + "</td>\n")
+            file.write("</tr>\n")
+
+        file.write("</table>")
 
         file.write("\n\n")
 
-
-        file.write("Average Scores and School ranking : \n\n")
-        file.write("Skill Number \t School Average \t Olympiad Average \t   Rank\n")
+        file.write("<p><b>Average Scores and School ranking : </p></b>\n")
+        file.write("<table>\n")
+        file.write("<tr>\n")
+        file.write("<td align=\"center\"> <i>Skill Number</i> </td> <td align=\"center\"> <i>School Average</i> </td> <td align=\"center\"> <i>Olympiad Average</i> </td> <td align=\"center\"> <i>Rank</i> </td>\n")
+        file.write("</tr>\n")
         for j in range(5):
-            file.write(str(j+1) + "\t\t\t\t\t" + str(round(ele['scores'][i][j], 2)) + "\t\t\t\t" + str(round(aver_scr[i][j], 2)) + "\t\t\t\t" + str(int(ele['ran'][i][j])) + "\n")
+            file.write("<tr>\n")
+            file.write("<td align=\"center\">" + str(j+1) + "</td> <td align=\"center\">" + str(round(ele['scores'][i][j], 2)) + "</td> <td align=\"center\">" + str(round(aver_scr[i][j], 2)) + "</td> <td align=\"center\">" + str(int(ele['ran'][i][j])) + "</td>\n")
             if(ele['scores'][i][j] < aver_scr[i][j]):
                 attn.append(j)
+            file.write("</tr>\n")
+
+        file.write("<tr>")
+        file.write("<td align=\"center\"> Overall </td> <td align=\"center\">" + str(round(ele['scores'][i][5], 2)) + "</td> <td align=\"center\">" + str(round(aver_scr[i][5], 2)) + "</td> <td align=\"center\">" + str(int(ele['ran'][i][5])) + "</td>\n")
+        file.write("</tr>")
+
+        file.write("</table>\n")
+        file.write("<br />\n")
         
-        file.write("Overall" + "\t\t\t\t" + str(round(ele['scores'][i][5], 2)) + "\t\t\t\t" + str(round(aver_scr[i][5], 2)) + "\t\t\t\t" + str(int(ele['ran'][i][5])) + "\n")
-        file.write("\n")
         if(len(attn)>0):
-            file.write("The students need attention in skill number : ")
+            file.write("<p><i>Remark -> The students need attention in skill number : ")
             for at in attn:
                 file.write(str(at+1) + " ")
-            file.write("(below average performance)\n")
+            file.write("(below average performance) </i></p>\n")
 
         file.write("\n\n")
-
-    # break
-
-    # ran_o = new_sch_dict[school]['overall']
-    # file.write("School Ranking (Overall) : " + str(ran_o) + "\n")
