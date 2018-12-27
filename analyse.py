@@ -7,6 +7,18 @@ import matplotlib.pyplot as plt
 school_dict = {}
 last_id = -1
 
+# Reads teh data for every row and adds it into the school Dictionary.
+# Each school dict has 4 information fields ->
+# 1. discarded -> Number of students from that school whose student ID is not properly filled in the omr.
+# Assumption is made that if a student makes mistake in OMR filling, I have identified the school
+# as the school of the last student (since data for a school is present together)
+# 2. data -> Response to all 45 questions of the student. This field contains four arrays,
+# representing four levels
+# 3. id -> Student id corresponding to every data point. Same structure as 'Data' field.
+# 4. num -> Total number of students participating in that school
+
+# The data collected here is preliminary, directly taken rom the CSV file. A lot of processing needs
+# to be done beore it can be used for analysis
 def get_data(full_row):
     global school_dict
     global last_id
@@ -32,7 +44,7 @@ def get_data(full_row):
     school_dict[school_id]['id'][lvl].append(student_id)
     school_dict[school_id]['num'] += 1
 
-
+# Get some of values between index i and j of an array
 def get_sum(arr, i, j):
     sumt = 0
     for ind in range(i, j):
@@ -40,6 +52,7 @@ def get_sum(arr, i, j):
 
     return sumt
 
+# provide rank to a number of ids and there corresponding scores
 def give_ran(dict_inp, i, j):
     heap = []
     for ele in dict_inp:
@@ -53,6 +66,7 @@ def give_ran(dict_inp, i, j):
 
     return
 
+# Conver int to string of a fixed length (basically add 0s on the left to cover up)
 def int_to_str(inte, leng):
     ans = str(inte)
     while(len(ans)<leng):
@@ -60,6 +74,7 @@ def int_to_str(inte, leng):
 
     return ans
 
+# Read the raw data present in csv
 with open('alldata.csv') as csv_file:
     csv_reader = csv.reader(csv_file, delimiter=',')
     line_count = 0
@@ -69,10 +84,13 @@ with open('alldata.csv') as csv_file:
         else:
             get_data(row)
 
+# Processing and Cleaning
 new_sch_dict = {}
 
 for ele in school_dict:
     data = school_dict[ele]['data']
+    # If none of the levels have more than 1 student, clearly this is a school created during
+    # reading of data, due to wrongly filled OMR. Thus he school is discarded
     if(len(data[0])<=1 and len(data[1])<=1 and len(data[2])<=1 and len(data[3])<=1):
         continue
 
@@ -84,9 +102,12 @@ for ele in school_dict:
     for i in range(4):
         lvl_data = school_dict[ele]['data'][i]
         lvl_id = school_dict[ele]['id'][i]
+        # If number of students is not more than 1, clearly this school level needs to be discarded, 
+        # same reason as that of discarding a school
         if(len(lvl_data)<=1):
             continue
         new_sch_dict[ele]['num'] += len(lvl_data)
+        # Instead of storing answers to every question, store skill wise and overall performance
         for q, idl in zip(lvl_data, lvl_id):
             temp = []
             temp.append(get_sum(q, 0, 10))
@@ -98,6 +119,7 @@ for ele in school_dict:
             new_sch_dict[ele]['data'][i].append(temp)
             new_sch_dict[ele]['id'][i].append(idl)
     
+    # Average performance of the school in each level, for every skill number and overall
     ttl_scr = []
     for i in range(4):
         scr_arr = [0, 0, 0, 0, 0, 0]
@@ -116,7 +138,7 @@ for ele in school_dict:
     new_sch_dict[ele]['scores'] = ttl_scr
     new_sch_dict[ele]['ran'] = np.zeros((4, 6))
 
-
+# Average Olympiad performance
 aver_scr = []
 for i in range(4):
     lvl_avg = []
@@ -132,6 +154,7 @@ for i in range(4):
         lvl_avg.append(temp)
     aver_scr.append(lvl_avg)
 
+# Ranking for every level, for every skill number and overall
 for i in range(4):
     for j in range(6):
         give_ran(new_sch_dict, i, j)
@@ -146,6 +169,7 @@ for school in new_sch_dict:
 
 # give_ran(new_sch_dict, 'overall', 5)
 
+# Creating a HTML file, which can later be converted to PDF
 for school in new_sch_dict:
     ele = new_sch_dict[school]
     os.mkdir('data/' + str(school))
