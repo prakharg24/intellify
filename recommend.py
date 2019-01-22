@@ -88,6 +88,18 @@ med_thr = 0.4
 score = np.sum(full_data, axis=0)
 score = score / len(full_data)
 
+for ele in score:
+	if(ele<0.2):
+		plt.plot(ele, 5, 'ro', color='red')
+	elif(ele<0.38):
+		plt.plot(ele, 5, 'ro', color='blue')
+	else:
+		plt.plot(ele, 5, 'ro', color='green')
+
+plt.show()
+
+exit()
+
 inp_ques = [16, 19, 30, 7, 5, 33, 25, 42, 9, 2]
 inp_resp = [ 0,  0,  1, 1, 1,  1,  1,  1, 1, 1]
 
